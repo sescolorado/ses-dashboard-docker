@@ -1,0 +1,60 @@
+body {
+    padding-top: 20px;
+}
+
+h2 {
+    margin-top: 40px;
+}
+
+h3 {
+    margin-top: 30px;
+}
+
+h4 {
+    margin-top: 20px;
+}
+
+p {
+    font-size: 16px;
+}
+
+pre {
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+}
+
+@media (max-width: 767px) {
+    #toc {
+        position: relative;
+        width: 100%;
+        margin: 0px 0px 20px 0px;
+    }
+}
+
+@media print {
+
+    pre code {
+        background-color: transparent;
+        border: 1px solid rgba(0, 0, 0, 0.15);
+        border-radius: 4px;
+        padding: 0;
+        margin: 0;
+    }
+
+    .row-fluid .span3 {
+        width: 100%;
+    }
+
+    .row-fluid .span9 {
+        width: 100%;
+    }
+
+    #toc {
+        position: relative;
+        width: 100%;
+        margin: 0px 0px 20px 0px;
+        display: none;
+    }
+
+}

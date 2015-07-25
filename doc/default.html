@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+
+  <title>SES Dashboard</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Le styles -->
+  <link href="styles/bootstrap.css" rel="stylesheet">
+  <link href="javascripts/jquery-ui/jquery-ui.min.css" rel="stylesheet">
+  <link href="styles/jquery.tocify.css" rel="stylesheet">
+  <link href="styles/monokai_sublime.css" rel="stylesheet">
+
+  <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+  <!--[if lt IE 9]>
+  <script src="javascripts/html5.js"></script>
+  <![endif]-->
+
+  <link href="styles/app.css" rel="stylesheet">
+
+</head>
+
+<body>
+
+<div class="container-fluid">
+
+  <div class="row-fluid">
+
+    <div class="span3">
+      <div id="toc"></div>
+    </div>
+
+    <div class="span9">
+
+      <div class="hero-unit">
+        <h1>SES Dashboard</h1>
+        <br/>
+        <p>
+          <strong>&copy; 2014 Sensible Energy Solutions LLC</strong>
+        </p>
+      </div>
+
+      <h2>SES Dashboard Installation Files</h2>
+
+      <p>
+        This document is based on the files in the encrypted archive <code>ses-dashboard-install-files.tar.gz.enc</code>.
+      </p>
+
+      <p>
+        Download this file to the destination server with the following command:
+      </p>
+
+      <pre><code class="bash">wget http://sesdashboard.asdsoftwaredesign.com/ses-dashboard-install-files.tar.gz.enc</code></pre>
+
+      <p>
+        Decrypt and unpack the installation files with the following commands:
+      </p>
+
+      <pre><code class="bash">openssl aes-256-cbc -d -salt -in "ses-dashboard-install-files.tar.gz.enc" -out "ses-dashboard-install-files.tar.gz" -pass pass:rd5CHNn3hD6MV6Pw
+tar -zxvf ses-dashboard-install-files.tar.gz
+tar -zxvf ses-dashboard.tar.gz
+sudo chown -R www-data:www-data ses-dashboard
+tar -zxvf ses-dashboard-docker.tar.gz</code></pre>
+
+      <p>
+        There will be two newly created directories called <code>ses-dashboard</code> and <code>ses-dashboard-docker</code>. The location of these directories are indicated
+        in the rest of the documentation as <code>&lt;ses-dashboard&gt;</code> and <code>&lt;ses-dashboard-docker&gt;</code>. <b>You must replace commands in this documentation
+        that contain <code>&lt;ses-dashboard&gt;</code> and <code>&lt;ses-dashboard-docker&gt;</code> to the location of these unpacked folders!</b>
+      </p>
+
+      <h3>ses-dashboard</h3>
+      <p>
+        The <code>ses-dashboard</code> directory contains all of the files for the web service. Any editing of these files will result in immediate update and change of
+        the web service or added web application files.
+      </p>
+
+      <h3>ses-dashboard-docker</h3>
+      <p>
+        The <code>ses-dashboard-docker</code> directory contains helper scripts as well as the Dockerfiles used to build the Docker system images.
+      </p>
+
+      <h2>Installation</h2>
+
+      <p>
+        SES Dashboard is built into a Docker image for ease of installation and backup. There is no complex configuration needed as this has already
+        been performed during development.
+      </p>
+
+      <p>
+        The installation instructions have been tested on Ubuntu 14.04 LTS. Different installation instructions for other Linux distributions can
+        be found on the <a href="http://www.docker.com/">Docker web page</a>.
+      </p>
+
+      <p>
+        Command line blocks can usually just be copied and pasted into a terminal window.
+      </p>
+
+      <h3>Docker Installation</h3>
+
+      <p>
+        Install the latest stable version of Docker with the following commands on the command prompt:
+      </p>
+
+      <pre><code class="bash">sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 36A1D7869245C8950F966E92D8576A8BA88D21E9
+sudo sh -c "echo deb https://get.docker.io/ubuntu docker main > /etc/apt/sources.list.d/docker.list"
+sudo apt-get update
+sudo apt-get install inotify-tools lxc-docker mysql-client</code></pre>
+
+      <p>
+        Configure Docker with some more options by editing the /etc/default/docker configuration file:
+      </p>
+
+      <pre><code class="bash">sudo sed -i '/DOCKER_OPTS=/c\DOCKER_OPTS="--dns 8.8.8.8 --dns 8.8.4.4 -r=false"' /etc/default/docker</code></pre>
+
+      <p>
+        Configure the Ubuntu firewall, called ufw, so that data sent to ports on the firewall can be forwarded to Docker:
+      </p>
+
+      <pre><code class="bash">sudo sed -i '/DEFAULT_FORWARD_POLICY="DROP"/c\DEFAULT_FORWARD_POLICY="ACCEPT"' /etc/default/ufw
+sudo service ufw restart</code></pre>
+
+      <p>
+        Enable the Docker containers that run the web server and MySQL server, called ses_app and ses_mysql respectively, to run after reboot:
+      </p>
+
+      <pre><code class="bash">sudo cp &lt;ses-dashboard-docker&gt;/docker/docker_containers.conf /etc/init</code></pre>
+
+      <p>
+        Docker should now be installed.
+      </p>
+
+      <h3>SES Dashboard Installation</h3>
+
+      <p>
+        SES Dashboard comprises of two Docker system images called <code>ses_app</code> and <code>ses_mysql</code>. The system images are
+        imported by running the following commands where the encrypted archive <code>ses-dashboard-install-files.tar.gz.enc</code> was previously unpacked:
+      </p>
+
+      <pre><code class="bash">sudo docker load < ses-app.tar
+sudo docker load < ses-mysql.tar</code></pre>
+
+      <p>
+        Docker system image import can be confirmed by running the following command:
+      </p>
+
+      <pre><code class="bash">sudo docker images</code></pre>
+
+      <p>
+        This command should show the images <code>ses_app</code> and <code>ses_mysql</code>.
+      </p>
+
+      <p>
+        SES Dashboard can now be started.
+      </p>
+
+      <h2>Starting SES Dashboard</h2>
+
+      <p>
+        Scripts have been provided to start and stop the SES Dashboard Docker images. These scripts are located in the <code>ses-dashboard-docker</code> archive.
+      </p>
+
+      <p>
+        Docker containers must be started. During this process a Docker image is placed into a Docker container and the default command in the
+        Docker image is executed. <b>This command starts both Docker containers and should only need to be executed one time on a production system.</b>
+        Once the docker containers have been started, they will be restarted upon a reboot of the system.
+      </p>
+
+      <p>
+        Use the following commands to start the SES Dashboard Docker images. <b>You must specify the absolute path of <code>ses-dashboard</code> when starting the
+        Docker images!</b> This is used by Docker to find PHP files on the hard disk.
+      </p>
+
+      <p>
+        <b>Important</b>: During this process the server is rebooted and the <code>ses_app</code> Docker image is stopped, removed, and started again.
+        This is done to ensure that the Docker containers will be restarted correctly when the system is rebooted. <b>Do not ignore this step.</b>
+      </p>
+
+      <pre><code class="bash">cd &lt;ses-dashboard-docker&gt;
+# &lt;ses-dashboard&gt; must be replaced with the full absolute path of the ses-dashboard directory, or the command will not work.
+sudo ./run_prod_all.sh &lt;ses-dashboard&gt;
+# reboot the server
+sudo reboot
+# once the system has booted, run the following commands
+cd &lt;ses-dashboard-docker&gt;
+sudo ./app/stop.sh
+sudo ./app/remove.sh
+# &lt;ses-dashboard&gt; must be replaced with the full absolute path of the ses-dashboard directory, or the command will not work.
+sudo ./app/run_prod.sh &lt;ses-dashboard&gt;</code></pre>
+
+
+      <p>
+        Test that rebooting the server is working properly by rebooting the server again and visiting this URL in a browser:
+      </p>
+
+      <pre><code class="bash">http://&lt;hostname or IP address&gt;/energystat/locations</code></pre>
+
+      <p>
+        A set of brackets ([]) should appear.
+      </p>
+
+      <h3>Stopping the Docker Containers</h3>
+
+      <p>
+        The Docker containers can also be stopped.
+      </p>
+
+      <p>
+        <b>Important</b>: This will remove all data from the MySQL database. The data will have to be imported or restored from backup.
+      </p>
+
+      <pre><code class="bash">cd &lt;ses-dashboard-docker&gt;
+sudo ./stop_all.sh</code></pre>
+
+      <h3>Starting the Docker Containers</h3>
+
+      <p>
+        After a the Docker containers are stopped, they can be restarted with the following commands:
+      </p>
+
+      <pre><code class="bash">cd &lt;ses-dashboard-docker&gt;
+sudo ./start_all.sh</code></pre>
+
+      <h3>Removing the Docker Containers</h3>
+
+      <p>
+        After a Docker container is stopped, it can be removed forever.
+      </p>
+
+      <p>
+        <b>Important</b>: This will remove all data from the MySQL database. The data will have to be imported or restored from backup.
+      </p>
+
+      <pre><code class="bash">cd &lt;ses-dashboard-docker&gt;
+sudo ./remove_all.sh</code></pre>
+
+      <h3>Starting SES Dashboard for Development</h3>
+
+      <p>
+        SES Dashboard was developed on Ubuntu 14.04 Desktop using PhpStorm. It is advised that the same environment be used in further
+        development of SES Dashboard. It is possible to run Ubuntu 14.04 on a Windows or Macintosh operating using system using
+        VirtualBox or Parallels respectively.
+      </p>
+      <p>
+        SES Dashboard can also be started in a way that can be used for development. In this mode the Docker container directory
+        <code>/var/www</code> is mapped to a directory on the host computer. A user can edit the files in the mapped directory and
+        the changes will be present inside the Docker container.
+      </p>
+
+      <p>
+        It is required that you edit the file <code>&lt;ses-dashboard-docker&gt;/app/run_dev.sh</code> and replace the path to the
+        development directory to where the development files reside on the development system. SES Dashboard was developed in the
+        directory <code>/home/dehaul/prj/ses/ses-dashboard</code>. Replace this path with the directory where you have extracted the
+        <code>ses-dashboard</code> archive.
+      </p>
+
+      <p>
+        Start the Docker containers in development mode:
+      </p>
+
+      <pre><code class="bash">cd &lt;ses-dashboard-docker&gt;
+sudo ./run_dev_all.sh</code></pre>
+
+      <p>
+        The web application files in the <code>ses-dashboard</code> archive must have the proper file permissions so that they can be accessed by the
+        web server inside the running <code>ses_app</code> Docker container. This can be accomplished by accessing the shared volumes on
+        the <code>ses_app</code> development container in another Docker container instance.
+      </p>
+
+      <pre><code class="bash">cd &lt;ses-dashboard-docker&gt;/app
+sudo ./run_shell.sh
+# another shell will pop up... this is a shell in the Docker container
+chown -R www-data:www-data /var/www</code></pre>
+
+      <p>
+        The user of the host computer must also have permissions to edit the files in the mapped directory. This can be accomplished by adding the
+        editing user to the <code>www-data</code> group by using GUI system settings or editing the <code>/etc/group</code> file located on the host computer.
+      </p>
+
+      <h2>Database Operations</h2>
+
+      <p><b>Important</b>: The <code>ses_app</code> and <code>ses_mysql</code> Docker containers must have been started before any database operations can take place.</p>
+
+      <h3>SES Dashboard Database Backup</h3>
+
+      <p>
+        The MySQL database can be backed up and restored by using the regular <code>mysql</code> command on the host computer. MySQL Client tools must
+        first be installed.
+      </p>
+
+      <pre><code class="bash">sudo apt-get install mysql-client</code></pre>
+
+      <p>The user names and passwords of the MySQL users are located inside the Docker container in a file:</p>
+
+      <pre><code class="bash">cd &lt;ses-dashboard-docker&gt;/mysql
+sudo ./run_shell.sh
+# another shell will pop up... this is a shell in the Docker container
+cat /root/mysql_passwords.txt
+# output from command:
+ses_admin : &lt;password here&gt;
+ses : &lt;password here&gt;
+ses_testing : &lt;password here&gt;</code></pre>
+
+      <p>The <code>ses_admin</code> user can then be used to backup the MySQL database:</p>
+
+      <pre><code class="bash">&lt;ses-dashboard-docker&gt;/mysql/mysql_backup.sh ses_admin &lt;ses_admin_password&gt; ses
+# a file with the name similar to ses_20140715_070650.tar will be created</code></pre>
+
+
+      <p>The backed up database can be restored at a later time.</p>
+
+      <pre><code class="bash">&lt;ses-dashboard-docker&gt;/mysql/mysql_restore.sh ses_admin &lt;ses_admin_password&gt; ses_20140715_070650.tar
+# the data will be restored, overwriting the current data in the database</code></pre>
+
+      <p>
+        Database backups should be performed on a regular schedule using a cron job. See Ubuntu or other Linux distribution documentation about cron jobs
+        for more information how to schedule a cron job on the host system.
+      </p>
+
+      <h3>Adding a New Location</h3>
+
+      <p>
+        Each location is a separate table inside of the database. Adding a new location requires creating a Laravel migration script,
+        setting up the database by editing a PHP file, and importing the CSV data into the table.
+      </p>
+
+      <p><b>Important</b>: The migrations for the following tables have already been created:</p>
+
+      <ul>
+        <li>mc_courthouse</li>
+        <li>mc_fleet_maintenance</li>
+        <li>mc_hr_dept</li>
+        <li>mc_workforce</li>
+      </ul>
+
+      <p>
+        It is only required that you execute the migration scripts in the section Executing Migrations.
+      </p>
+
+      <h4>Creating a Migration</h4>
+
+      <p>
+        A migration is an semi-generated PHP file that contains the instructions for creating and destroying a table.
+      </p>
+
+      <p>
+        Create a migration with the following commands:
+      </p>
+
+      <pre><code class="bash">cd &lt;ses-dashboard-docker&gt;/app
+sudo ./run_shell.sh
+# another shell will pop up... this is a shell in the Docker container
+cd /var/www/
+./create_migration.sh &lt;new_location_table_name&gt;
+# a new migration will will be located in app/database/migrations
+exit</code></pre>
+
+      <p>
+        The newly created migration file must be edited. The migration file will be located in the <code>app/database/migrations</code>
+        directory. Open the file and look for a code block that looks like the following:
+      </p>
+
+      <pre><code class="php">Schema::create('&lt;new_location_table_name&gt;', function(Blueprint $table)
+{
+  $table->increments('id');
+  $table->timestamps();
+});</code></pre>
+
+      <p>
+        Change this code block to look the following:
+      </p>
+
+      <pre><code class="php">Schema::create('&lt;new_location_table_name&gt;', function(Blueprint $table)
+{
+  $table->engine = 'InnoDB';
+
+  $table->increments('id');
+  $table->dateTime('timeUTC')->unique();
+});</code></pre>
+
+      <h4>Executing Migrations</h4>
+
+      <p>Run the following set of commands to execute the migrations:</p>
+
+      <pre><code class="bash">cd &lt;ses-dashboard-docker&gt;/app
+sudo ./run_shell.sh
+# another shell will pop up... this is a shell in the Docker container
+cd /var/www/
+php artisan migrate
+# You will be warned that the application is in production. Say yes.
+exit</code></pre>
+
+      <h4>Importing CSV Data</h4>
+
+      <p>
+        CSV data is imported with a custom created Laravel command. The table specified with <code>&lt;new_location_table_name&gt;</code>
+        must have been created using the migration steps.
+      </p>
+
+      <p>
+        <b>Important</b>: The CSV files must be accessible to the Docker container. You must put the importable CSV files into the
+        <code>&lt;ses-dashboard&gt;</code> directory so that they will be visible to the Docker container!
+      </p>
+
+      <p>
+        The following command will import all .csv files in the specified directory:
+      </p>
+
+      <pre><code class="bash">cd &lt;ses-dashboard-docker&gt;/app
+sudo ./run_shell.sh
+# another shell will pop up... this is a shell in the Docker container
+cd /var/www/
+php artisan energy-stat:csv-import -d &lt;data_directory&gt; &lt;new_location_table_name&gt;</code></pre>
+
+      <p>
+        It is also possible to import a single file at a time with the following command:
+      </p>
+
+      <pre><code class="bash">cd &lt;ses-dashboard-docker&gt;/app
+sudo ./run_shell.sh
+# another shell will pop up... this is a shell in the Docker container
+cd /var/www/
+php artisan energy-stat:csv-import -f &lt;data_file&gt; &lt;new_location_table_name&gt;</code></pre>
+
+      <p>
+        A cron job can be set to run a command to import a directory of CSV files by using the following commands:
+      </p>
+
+      <pre><code class="bash">docker run -i -t --volumes-from ses_app --link ses_mysql:mysql --name "ses_app_cron" ses_app php /var/www/artisan energy-stat:csv-import -d &lt;data_directory&gt; &lt;new_location_table_name&gt;
+docker rm ses_app_cron</code></pre>
+
+      <h2>The energystat Web Service</h2>
+
+      <p>
+        Imported energy and temperature statistics are retrieved through the <code>energtstat</code> web service. It is possible to test the <code>energystat</code>
+        web service with the <code>curl</code> command. Windows curl binaries can be downloaded from <a href="http://www.confusedbycode.com/curl/">http://www.confusedbycode.com/curl/</a>.
+      </p>
+
+      <h3>Locations Operator</h3>
+
+      <p>The energy stat web service provides the current locations through the <code>locations</code> operator.</p>
+
+      <pre><code class="bash">&lt;URL_to_SES_Dashboard&gt;/energystat/locations</code></pre>
+
+      <p>The <code>locations</code> operator can be tested with <code>curl</code>:</p>
+
+
+      <pre><code class="bash">curl http://&lt;URL_to_SES_Dashboard&gt;/energystat/locations
+# Output
+["mc_courthouse","mc_fleet_maintenance","mc_hr_dept","mc_workforce"]</code></pre>
+
+      <h3>Fields Operator</h3>
+
+      <p>
+        Fields for each location can differ from other locations. Fields can be retrieved for a location using the <code>fields</code> operator.
+        A specific location is appended to the URL. The location must be one of the locations returned from the <code>locations</code> operator.
+      </p>
+
+      <pre><code class="bash">&lt;URL_to_SES_Dashboard&gt;/energystat/fields/&lt;location&gt;</code></pre>
+
+      <p>The <code>fields</code> operator can be tested with <code>curl</code>:</p>
+
+
+      <pre><code class="bash">curl http://&lt;URL_to_SES_Dashboard&gt;/energystat/fields/mc_courthouse
+# Output
+["1st_Floor_Occupied_Ave_Degrees_F","1st_Floor_Occupied_Degrees_F","1st_Floor_Occupied_Max_Degrees_F","1st_Floor_Occupied_Min_Degrees_F","1st_Floor_Unoccupied_Ave_Degrees_F","1st_Floor_Unoccupied_Degrees_F","1st_Floor_Unoccupied_Max_Degrees_F","1st_Floor_Unoccupied_Min_Degrees_F","Accumulated_Apparent_Energy_Phase_A_Export_Vah",
+... truncated for length...
+"Total_Reactive_Power_Present_Demand_kVAR","Total_Real_Power_Max_Demand_Export_kW","Total_Real_Power_Max_Demand_Import_kW","Total_Real_Power_Present_Demand_kW","Voltage_LL_3p_Ave_Volts","Voltage_LN_3p_Ave_Volts","Voltage_Phase_AB_Volts","Voltage_Phase_AC_Volts","Voltage_Phase_AN_Volts","Voltage_Phase_BC_Volts","Voltage_Phase_BN_Volts","Voltage_Phase_CN_Volts"]</code></pre>
+
+      <p>If an invalid location is specified, the fields operator will return:</p>
+
+      <pre><code class="bash">"Invalid location specified."</code></pre>
+
+      <pre><code class="bash">curl http://&lt;URL_to_SES_Dashboard&gt;/energystat/fields/invalid_location
+# Output
+"Invalid location specified."</code></pre>
+
+      <h3>Range Operator</h3>
+
+      <p>
+        The date ranges of valid data for each location can differ from other locations. The valid date ranges for a location can be retrieved for a location using the
+        <code>range</code> operator. A specific location is appended to the URL. The location must be one of the locations returned from the <code>locations</code> operator.
+      </p>
+
+      <pre><code class="bash">&lt;URL_to_SES_Dashboard&gt;/energystat/range/&lt;location&gt;</code></pre>
+
+      <p>The <code>range</code> operator can be tested with <code>curl</code>:</p>
+
+      <pre><code class="bash">curl http://&lt;URL_to_SES_Dashboard&gt;/energystat/range/mc_courthouse
+# Output
+["2014-03-11 17:30:00","2014-07-21 06:00:00"]
+
+      <p>If an invalid location is specified, the range operator will return:</p>
+
+      <pre><code class="bash">"Invalid location specified."</code></pre>
+
+      <pre><code class="bash">curl http://&lt;URL_to_SES_Dashboard&gt;/energystat/range/invalid_location
+        # Output
+        "Invalid location specified."</code></pre>
+
+      <h3>Read Operator</h3>
+
+      <p>
+        Data for a location is retrieved using the <code>read</code> operator. The location must be one of the locations returned from the <code>locations</code> operator.
+      </p>
+
+      <pre><code class="bash">&lt;URL_to_SES_Dashboard&gt;/energystat/read/&lt;location&gt;</code></pre>
+
+      <h4>Request</h4>
+
+      <p>
+        A HTTP POST request must be made to the operator with a JSON description of the data that is to be returned from the service. The JSON description must include:
+      </p>
+
+      <ul>
+        <li><b>timeFrom</b> - string representing the data start time in MySQL datetime format. Data returned is inclusive of this date.</li>
+        <li><b>timeTo</b> - string representing the data end time in MySQL datetime format. Data returned is inclusive of this date.</li>
+        <li><b>fields</b> – array of strings of the fields to be returned.</li>
+      </ul>
+
+      <p>
+        <b>Important</b>: <code>timeTo</code> is exclusive. All data in the database will be returned between the dates specified,
+        excluding the <code>timeTo</code> date. For example to retrieve the data on March 11, 2014, specify March 11, 2014 in
+        <code>timeFrom</code> and March 12, 2014 in <code>timeTo</code>.
+      </p>
+      <p>
+        <b>Important</b>: the <code>timeUTC</code> field is always returned in the response object and does not have to be specified.
+      </p>
+      <p>
+        An example JSON request to the <code>read</code> operator:
+      </p>
+
+      <pre><code class="json">{
+  "timeFrom": "2014-03-11",
+  "timeTo": "2014-03-18",
+  "fields": [
+    "1st_Floor_Occupied_Degrees_F",
+    "Basement_office_Degrees_F",
+    "Supply_boiler_Degrees_F",
+    "Total_Net_Instantaneous_Real_Power_kW"
+  ]
+}</code></pre>
+
+      <h4>Response</h4>
+
+      <p>A JSON object containing the requested data is returned from the read operator. It includes:</p>
+
+      <ul>
+        <li>
+          <b>errors</b> - array of strings indicating errors with the request.
+        </li>
+        <li>
+          <b>data</b> - nested JSON object containing the fields that were requested and successfully returned.
+        </li>
+      </ul>
+
+      <p>
+        An example JSON object returned by the description of the data to be returned from the <code>read</code> operator:
+      </p>
+
+      <pre><code class="json">{
+  "errors":    ["Requested field Not_A_Field not found."],
+  "data":{
+    "timeUTC":["2014-03-11 17:30:00","2014-03-11 17:45:00",
+      ... truncated for length...
+    ],
+    "Total_Net_Instantaneous_Real_Power_kW":[142.44,132.53,146.55,
+      ... truncated for length...
+    ],
+  }
+}</code></pre>
+
+      <p>The <code>read</code> operator can be tested with <code>curl</code>:</p>
+
+      <pre><code class="bash">curl -X POST -H "Content-Type: application/json" http://localhost/energystat/read/mc_courthouse -d '{"timeFrom": "2014-03-11", "timeT18", "fields": ["1st_Floor_Occupied_Degrees_F", "Basement_office_Degrees_F", "Supply_boiler_Degrees_F", "Total_Net_Instantaneous_Real_Power_kW"]}'
+# Output
+{"errors":[],"data":{"timeUTC":["2014-03-11 17:30:00","2014-03-11 17:45:00","2014-03-11 18:00:00","2014-03-11 18:15:00","2014-03-11 18:30:00","2014-03-11 18:45:00","2014-03-11 19:00:00","2014-03-11 19:15:00","2014-03-11 19:30:00","2014-03-11 19:45:00","2014-03-11"
+# ... truncated for length...
+}</code></pre>
+
+      <h2>PHPUnit Tests</h2>
+
+      <p>
+        PHPUnit tests are included in the <code>&lt;ses_dashboard&gt;/app/tests</code> directory. Tests can be run with the included <code>phpunit</code> command.
+      </p>
+
+      <pre><code class="bash">cd &lt;ses-dashboard-docker&gt;/app
+sudo ./run_shell.sh
+# another shell will pop up... this is a shell in the Docker container
+cd /var/www/
+./phpunit
+# PHPUnit tests will be executed and their results will be shown</code></pre>
+
+      <h2>PHP Code Documentation</h2>
+
+      <p>
+        Documentation is provided for all code created or modified for Sensible Energy Solutions LLC. The documentation is located in the
+        <code>&lt;ses_dashboard&gt;/doc</code> directory. Open the <code>&lt;ses_dashboard&gt;/doc/index.html</code> file with a web browser to view the documentation.
+      </p>
+
+      <h2>Web Application</h2>
+
+      <p>
+        The web application uses the <a href="https://docs.angularjs.org">AngularJS</a> web application framework. Please read the <a href="https://docs.angularjs.org">AngularJS</a>
+        to learn more about how to modify the application.
+      </p>
+
+      <p>
+        The following files are used in configuring the web application:
+      </p>
+
+      <ul>
+        <li>
+          <code>&lt;ses_dashboard&gt;/app/views/ses_dashboard.php</code> - main file that starts the entire web application. The file controls
+          the header and the contents the menus as well as the footer.
+        </li>
+        <li>
+          <code>&lt;ses_dashboard&gt;/public/partials/root.html</code> - content of the landing page.
+        </li>
+        <li>
+          <code>&lt;ses_dashboard&gt;/public/partials/about.html</code> - content of the about page.
+        </li>
+        <li>
+          <code>&lt;ses_dashboard&gt;/public/partials/locations.html</code> - template for a page that shows all the locations in the system. Each location must be defined in
+          <code>&lt;ses_dashboard&gt;/public/js/locations.js</code>.
+        </li>
+        <li>
+          <code>&lt;ses_dashboard&gt;/public/partials/location.html</code> - template for a location that is configured using the files in the <code>location_config</code> directory.
+          Each location must have a file for the location in the <code>&lt;ses_dashboard&gt;/public/location_config</code> directory.
+        </li>
+        <li>
+          <code>&lt;ses_dashboard&gt;/public/js/locations.js</code> - converts the application location names from the <code>energystat</code> service to
+          display labels.
+        </li>
+        <li>
+          <code>&lt;ses_dashboard&gt;/public/location_config/*.js</code> - files in this directory are named after location names from the <code>energystat</code>
+          service and each file configures one location view.
+        </li>
+      </ul>
+
+      <h3>Browser Support</h3>
+
+      <p>
+        The web application works properly in the latest version of Chrome and Firefox as well as Internet Explorer versions 9 and greater. It also works properly
+        in the latest Chrome browser on Android and the latest Safari browser on iOS.
+      </p>
+
+      <p>
+        Internet Explorer support is limited to versions 9 and greater because Google Chart does not promise to work properly on Internet Explorer 8 and lower.
+        A warning message will be displayed to users when they visit the web application using Internet Explorer 8 and lower.
+      </p>
+
+      <h3>Header and Footer</h3>
+
+      <p>
+        The header and footer is edited in <code>&lt;ses_dashboard&gt;/app/views/ses_dashboard.php</code>. Any changes to the file will show up on any
+        page in the system.
+      </p>
+
+      <p>
+        The featured locations dropdown is edited in the area marked <code>&lt;!-- EDIT DROPDOWNS HERE --&gt;</code>. Follow the example provided to change the
+        dropdown text and which location it points to.
+      </p>
+
+      <p>
+        The footer edited in the area marked <code>&lt;!-- EDIT FOOTER HERE --&gt;</code>.
+      </p>
+
+      <h3>Main Landing</h3>
+
+      <p>
+        The main landing page is edited in <code>&lt;ses_dashboard&gt;/public/partials/root.html</code>. This file is a normal HTML file and any content may be placed
+        into it. A sample main landing page file has been provided as an example.
+      </p>
+
+      <h3>About Page</h3>
+
+      <p>
+        The about page is edited in <code>&lt;ses_dashboard&gt;/public/partials/about.html</code>. This file is a normal HTML file and any content may be placed
+        into it. A sample about page file has been provided as an example.
+      </p>
+
+      <h3>All Locations</h3>
+
+      <p>
+        The template for the all locations page is <code>&lt;ses_dashboard&gt;/public/partials/locations.html</code>. This is a template file so care must be taken when
+        editing it so the locations will still be displayed.
+      </p>
+
+      <p>
+        All of the locations returned by the <code>energystat</code> service must have a corresponding entry in <code>&lt;ses_dashboard&gt;/public/js/locations.js</code>.
+        To add a new location definition, edit the JavaScript object as the example:
+      </p>
+
+      <pre><code class="javascript">locations.factory('Locations', [
+function() {
+  'use strict';
+
+  return {
+    mc_courthouse: 'Mesa County Courthouse',
+    mc_fleet_maintenance: 'Mesa County Fleet Maintenance Shop',
+    mc_hr_dept: 'Mesa County Human Resources Department',
+    mc_workforce: 'Mesa County Workforce Center',
+    '&lt;new location&gt;': 'new location name'
+  };
+
+}]);</code></pre>
+
+      <h3>Location</h3>
+
+      <p>
+        The template for the location pages is <code>&lt;ses_dashboard&gt;/public/partials/location.html</code>. This is a template file so care must be taken when
+        editing it so the location will still be displayed.
+      </p>
+
+      <h4>Location Configuration</h4>
+
+      <p>
+        A location configuration file must be created for each location to be displayed in the location template. The location files must be named
+        <code>&lt;ses_dashboard&gt;/public/location_config/&lt;location name&gt;.js</code>. The configuration files are written in JavaScript.
+      </p>
+
+      <p>
+        Each configuration defines an object in the global <code>ses_location_config</code> object. The name of the newly defined object is the name
+        of the location that is returned by the <code>energystat</code> web service. Every location can have display fields defined for the chart and the
+        reduction fields that are displayed below the chart.
+      </p>
+
+      <p>
+        Configurations must always end with the following line to solve an issue with loading configuration files in Internet Explorer:
+      </p>
+
+      <pre><code class="javascript">ses_dashboard_load_script_deferred.resolve();</code></pre>
+
+      <h5>Chart Display Fields</h5>
+
+      <p>
+        The configuration may have several fields that are displayed in the chart object. The display fields for the chart are in the <code>fieldsDisplayChart</code>
+        array in the configuration object.
+      </p>
+
+      <p>
+        Each object in the <code>fieldsDisplayChart</code> can have the following fields:
+      </p>
+
+      <ul>
+        <li><code>label</code> (string) - label of the field in the chart.</li>
+        <li>
+          <code>fieldsData</code> (array of strings) - data fields necessary to create the field. Field names must be fields returned from the
+          <code>energystat</code> web service.
+        </li>
+        <li>
+          <code>checked</code> (boolean) - if set to true, the field is displayed in the chart by default.
+        </li>
+        <li>
+          <code>comparisonField</code> (boolean) - if set to true, the field takes both the base and comparison date ranges data to create a value.
+        </li>
+        <li>
+          <code>annotations</code> (function) - creates the annotation array for a field. <b>NOTE</b>: Annotations cannot be used on a comparison field.
+        </li>
+        <li>
+          <code>fun</code> (function) - a function to derive the value of the field. If the field is a comparison field, the <code>fun</code> function
+          takes both sets of variables required for the base data set and the comparison data set.
+        </li>
+      </ul>
+
+      <h5>Reduction Display Fields</h5>
+
+      <p>
+        Reduction display fields are displayed on the bottom of the chart. They are called reduction fields because the entire data set is reduced to
+        a single value. The reduction fields for the chart are objects in the <code>fieldsDisplayReductions</code> array in the configuration object.
+      </p>
+
+      <p>
+        Each object in the <code>fieldsDisplayReductions</code> can have the following fields:
+      </p>
+
+      <ul>
+        <li><code>label</code> (string) - label of the field in the chart.</li>
+        <li>
+          <code>fieldsData</code> (array of strings) - data fields necessary to create the field. Field names must be fields returned from the
+          <code>energystat</code> web service.
+        </li>
+        <li>
+          <code>comparisonField</code> (boolean) - if set to true, the field takes both the base and comparison date ranges data to create a value.
+        </li>
+        <li>
+          <code>fun</code> (function) - a function to derive the value of the field. If the field is a comparison field, the <code>fun</code> function
+          takes both sets of variables required for the base data set and the comparison data set.
+        </li>
+      </ul>
+
+      <h5>Configuration Testing</h5>
+
+      <p>
+        Configurations can be tested by visiting the location in the web application. Warnings will appear on the top of the page if any of the configuration
+        is not correct or if the data fields specified in the configuration cannot be resolved.
+      </p>
+
+      <h5>Complete Configuration</h5>
+
+      <p>
+        As an example, the complete configuration for the <code>mc_courthouse</code> location is shown:
+      </p>
+
+      <pre><code class="javascript">/* global angular */
+/* global ses_location_config */
+/* global ses_location_config_helpers */
+
+// Sensible Energy Solutions LLC
+
+ses_location_config // <- don't change this variable name!
+
+  .mc_courthouse = { // <- make sure you change this one to the same name as the location name!!!
+
+    fieldsDisplayChart: [
+    {
+      label: 'Total Net Instantaneous Real Power (kW)',
+      fieldsData: ['Total_Net_Instantaneous_Real_Power_kW'],
+      checked: true,
+      annotations: function(dataOpts, data) {
+        'use strict';
+
+        return ses_location_config_helpers.generateAnnotationsMinMaxByDay(data, 'Total_Net_Instantaneous_Real_Power_kW');
+      },
+      fun: function(data) {
+        'use strict';
+
+        return data.Total_Net_Instantaneous_Real_Power_kW;
+      }
+    },
+    {
+      label: 'Basement Office (F)',
+      fieldsData: ['Basement_office_Degrees_F'],
+      checked: true,
+      fun: function(data) {
+        'use strict';
+
+        return data.Basement_office_Degrees_F;
+      }
+    },
+    {
+      label: 'Supply Boiler (F)',
+      fieldsData: ['Supply_boiler_Degrees_F'],
+      checked: true,
+      fun: function(data) {
+        'use strict';
+
+        return data.Supply_boiler_Degrees_F;
+      }
+    },
+    {
+      label: 'Difference in Total Net Instantaneous Real Power (kW)',
+      fieldsData: ['Total_Net_Instantaneous_Real_Power_kW'],
+      comparisonField: true,
+      checked: true,
+      fun: function(dataBase, dataComparison) {
+        'use strict';
+
+        return dataBase.Total_Net_Instantaneous_Real_Power_kW - dataComparison.Total_Net_Instantaneous_Real_Power_kW;
+      }
+    }
+    ],
+    fieldsDisplayReductions: [
+    {
+      label: 'Savings / Loss',
+      fieldsData: ['Total_Net_Instantaneous_Real_Power_kW'],
+      comparisonField: true,
+      fun: function(dataBaseOpts, dataBase, dataComparisonOpts, dataComparison) {
+        'use strict';
+
+        var base = ses_location_config_helpers.calculateIntegral(dataBase,'Total_Net_Instantaneous_Real_Power_kW');
+        var comparison = ses_location_config_helpers.calculateIntegral(dataComparison,'Total_Net_Instantaneous_Real_Power_kW');
+
+        return ses_location_config_helpers.formatPercent(((comparison - base) / base));
+      }
+    },
+    {
+      label: 'kWh',
+      fieldsData: ['Total_Net_Instantaneous_Real_Power_kW'],
+      fun: function(dataOpts, data) {
+        'use strict';
+
+        return ses_location_config_helpers.calculateIntegral(data,'Total_Net_Instantaneous_Real_Power_kW');
+      }
+    },
+    {
+      label: 'Peak kW',
+      fieldsData: ['Total_Net_Instantaneous_Real_Power_kW'],
+      fun: function(dataOpts, data) {
+        'use strict';
+
+        return Math.max.apply(Math, data.Total_Net_Instantaneous_Real_Power_kW);
+      }
+    }
+  ]};
+
+ses_dashboard_load_script_deferred.resolve(); // <- do not remove this line (solves an IE issue)</code></pre>
+
+      <h2>Open Source Software</h2>
+
+      <p>
+        SES Dashboard employs the following open source projects in accordance to their licensing agreements:
+      </p>
+
+      <ul>
+        <li>AngularJS</li>
+        <li>Chart.js</li>
+        <li>Composer</li>
+        <li>Docker</li>
+        <li>Google Chart</li>
+        <li>Holder.js</li>
+        <li>HTML5 Boilerplate</li>
+        <li>jQuery</li>
+        <li>Laravel PHP Framework</li>
+        <li>MySQL Database</li>
+        <li>PHP</li>
+        <li>PHPUnit</li>
+        <li>Respond.js</li>
+        <li>Twitter Bootstrap</li>
+        <li>Ubuntu Linux</li>
+      </ul>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- Le javascript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="javascripts/jquery/dist/jquery.min.js"></script>
+<script src="javascripts/jquery-ui/jquery-ui.min.js"></script>
+<script src="javascripts/bootstrap.js"></script>
+<script src="javascripts/jquery.tocify.min.js"></script>
+<script src="javascripts/highlight.pack.js"></script>
+<script>hljs.initHighlightingOnLoad();</script>
+<script>
+  $(function () {
+    var toc = $("#toc").tocify({
+      selectors: "h2,h3,h4,h5"
+    }).data("toc-tocify");
+  });
+</script>
+
+</body>
+</html>
